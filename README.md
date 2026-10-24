@@ -1,146 +1,123 @@
-# SIM Diklat — Project Skeleton
+<p align="center">
+  <img src="assets/img/logosp.png" alt="Superteam Academy" width="260">
+</p>
 
-Fondasi project Next.js (App Router) + Tailwind CSS + Prisma untuk
-Sistem Informasi Manajemen Diklat.
+<h1 align="center">Superteam Academy</h1>
+<p align="center"><em>Jalani prosesnya, nikmati hasilnya.</em></p>
 
-## Status langkah ini
+<p align="center">
+  <img alt="CodeIgniter 3" src="https://img.shields.io/badge/CodeIgniter-3-EE4623?logo=codeigniter&logoColor=white">
+  <img alt="PHP" src="https://img.shields.io/badge/PHP-7.4%2B-777BB4?logo=php&logoColor=white">
+  <img alt="MySQL" src="https://img.shields.io/badge/MySQL-MariaDB-4479A1?logo=mysql&logoColor=white">
+</p>
 
-✅ Struktur project & konfigurasi (Tailwind, Prisma, alias `@/`)
-✅ Halaman: `/login`, `/dashboard`, `/kelas/[id]`, `/portal` (stub)
-✅ Session auth server-side: JWT di httpOnly cookie (`src/lib/auth.js`),
-   `middleware.js` melindungi rute admin & portal sesuai role
-✅ API routes CRUD penuh untuk 6 entitas: `/api/diklat`, `/api/materi`,
-   `/api/kelas` (+ shaped detail & sub-route pendaftaran peserta),
-   `/api/peserta`, `/api/narasumber`, `/api/panitia`
-✅ Halaman login sudah memanggil `/api/auth/login` sungguhan (bukan simulasi lagi)
-✅ Halaman `/kelas` (list, server component, langsung query Prisma) dengan
-   tombol "+ Kelas Baru"
-✅ `/kelas/baru` — Form Wizard 4 langkah: pilih Judul Diklat → jadwal &
-   lokasi → narasumber per materi & panitia → kuota + review → simpan
-   (memanggil `/api/kelas`, lalu `/api/kelas/[id]/narasumber` dan
-   `/api/kelas/[id]/panitia` untuk tiap penugasan)
-✅ Sidebar navigasi persisten (`src/components/Sidebar.jsx`), menu
-   menyesuaikan role (Admin lihat 7 menu, User lihat Portal saja),
-   dibungkus lewat route group `src/app/(app)/layout.jsx`
-✅ Halaman detail Kelas Diklat sekarang mengambil data Prisma asli
-   (bukan data contoh lagi)
-✅ Halaman list read-only untuk Judul Diklat, Materi, Peserta,
-   Narasumber, Panitia — masing-masing query Prisma langsung
-✅ Form Tambah/Edit/Hapus (modal) di kelima halaman list di atas —
-   `src/components/crud/*Manager.jsx`, langsung panggil API yang sudah ada
-✅ Portal Peserta lengkap (`/portal`): jadwal kelas yang diikuti, daftar
-   materi per kelas dengan link "Unduh Silabus", dan "Unduh Sertifikat"
-   untuk kelas yang statusnya Lulus (endpoint PATCH peserta-kelas sekarang
-   juga menerima `sertifikatUrl`)
-✅ Tab Peserta di Detail Kelas sekarang fungsional penuh: Export beneran
-   generate file `.xlsx` (pakai `xlsx`/SheetJS), Import baca file
-   .xlsx/.csv dan otomatis daftarkan tiap baris ke kelas, tombol Edit
-   buka modal ubah nilai/status kelulusan/link sertifikat, tombol
-   Keluarkan untuk unenroll, dan "+ Tambah Peserta" (peserta baru atau
-   cari dari data yang sudah ada)
-✅ Dashboard dengan data asli: 4 angka statistik (Diklat Aktif, Total
-   Peserta, Kelas Berjalan, Persentase Kelulusan) dari query Prisma
-   langsung, plus progress bar kelulusan keseluruhan dan daftar 5
-   Kelas Terbaru
-✅ **Sertifikat digital**: `/api/sertifikat/[pendaftaranId]` generate PDF
-   sertifikat on-the-fly (pakai `pdf-lib`, tanpa storage eksternal) —
-   desain krem/off-white dengan bingkai garis ganda emas, ornamen sudut
-   geometris, judul serif formal (Times-Bold), nama penerima serif
-   elegan (Times-Italic, padanan terdekat untuk kesan "script" karena
-   pdf-lib tidak menyediakan font Cinzel/Great Vibes tanpa embed manual
-   — lihat komentar di `src/lib/certificate.js` kalau mau pasang font
-   custom itu). **Nomor sertifikat diisi manual oleh admin** (bukan
-   digenerate otomatis) lewat field "Nomor Sertifikat" di modal Edit —
-   tombol unduh baru muncul setelah nomor ini diisi. Admin juga masih
-   bisa override total dengan "Link Sertifikat Kustom" kalau perlu file
-   yang ditandatangani manual di luar sistem
+Superteam Academy adalah platform pembelajaran daring berbasis web untuk mengelola kelas, materi video, dan jadwal tatap muka. Sistem ini memiliki tiga peran pengguna: **siswa**, **guru**, dan **admin**. Siswa belajar dari materi kelas yang diikuti, guru mengunggah materi, dan admin mengelola seluruh data.
 
-Semua item dari roadmap awal sudah selesai dikerjakan. Pengembangan
-lanjutan (opsional) yang bisa dikerjakan kalau dibutuhkan: embed font
-custom (Cinzel/Great Vibes/Montserrat) di sertifikat, notifikasi email,
-laporan/rekap per periode, halaman edit Kelas Diklat (sekarang baru
-bisa lewat Prisma Studio atau API langsung), dan role tambahan
-(Narasumber/Panitia login sendiri).
+## Tampilan
 
-**Penting:**
-1. `package.json` dapat 2 dependency baru (`xlsx`, `pdf-lib`) —
-   jalankan `npm install` lagi sebelum `npm run dev`.
-2. Skema database berubah (kolom baru `nomor_sertifikat`) — jalankan
-   `npx prisma migrate dev --name tambah_nomor_sertifikat` supaya
-   tabel di database Laragon ikut ter-update, sebelum `npm run dev`.
+| Beranda siswa | Halaman materi |
+|---|---|
+| ![Beranda siswa](docs/images/beranda-siswa.png) | ![Halaman materi](docs/images/halaman-materi.png) |
 
-## Ringkasan endpoint API
+> Gambar di atas adalah tampilan awal. Setelah menerapkan desain baru (putih dan oranye), ganti file di `docs/images/` dengan tangkapan layar terbaru, dengan nama file yang sama.
 
-| Method | Path | Keterangan |
-|---|---|---|
-| POST | `/api/auth/login` | Login, set cookie session |
-| POST | `/api/auth/logout` | Hapus cookie session |
-| GET | `/api/auth/me` | Info user yang sedang login |
-| GET/POST | `/api/diklat` | List / buat Judul Diklat |
-| GET/PUT/DELETE | `/api/diklat/[id]` | Detail / ubah / hapus |
-| GET/POST | `/api/materi` | List (filter `?judulDiklatId=`) / buat Materi |
-| GET/PUT/DELETE | `/api/materi/[id]` | Detail / ubah / hapus |
-| GET/POST | `/api/kelas` | List / buat Kelas Diklat |
-| GET/PUT/DELETE | `/api/kelas/[id]` | Detail (shaped utk komponen) / ubah / hapus |
-| POST | `/api/kelas/[id]/peserta` | Daftarkan peserta ke kelas |
-| PATCH/DELETE | `/api/kelas/[id]/peserta/[pesertaId]` | Update nilai & status / keluarkan |
-| POST | `/api/kelas/[id]/narasumber` | Plot narasumber ke materi tertentu (dipakai Wizard) |
-| POST | `/api/kelas/[id]/panitia` | Tetapkan panitia + peran/PJ (dipakai Wizard) |
-| GET/POST | `/api/peserta` | List (filter `?q=`) / buat Peserta |
-| GET/PUT/DELETE | `/api/peserta/[id]` | Detail / ubah / hapus |
-| GET/POST | `/api/narasumber` | List / buat Narasumber |
-| GET/PUT/DELETE | `/api/narasumber/[id]` | Detail / ubah / hapus |
-| GET/POST | `/api/panitia` | List / buat Panitia |
-| GET/PUT/DELETE | `/api/panitia/[id]` | Detail / ubah / hapus |
+## Fitur
 
-Semua endpoint tulis (POST/PUT/PATCH/DELETE) memerlukan sesi role `ADMIN`.
+### Siswa
+- Registrasi akun, masuk, dan keluar.
+- Beranda berisi kartu **Lanjutkan belajar**, daftar materi dari kelas yang diikuti, serta jadwal tatap muka.
+- Filter materi per kelas dan pencarian materi atau pengajar.
+- Halaman materi dengan pemutar video, deskripsi lengkap, daftar materi di kelas yang sama, dan tombol sebelumnya/berikutnya.
+- Jadwal tatap muka dengan hitung mundur, tombol **Tambah ke kalender** (Google Calendar), dan **Lihat peta** dari lokasi.
+- Siswa hanya bisa membuka materi dari kelas yang ia ikuti.
 
-## Menjalankan di lokal (Laragon / MySQL)
+### Guru
+- Masuk ke dashboard guru.
+- Menambah materi (mata pelajaran, kelas, deskripsi, dan video).
 
-```bash
-npm install
-cp .env.example .env      # sudah default ke Laragon MySQL, tinggal sesuaikan kalau beda
-npx prisma migrate dev --name init
-npm run db:seed           # buat 2 akun demo (lihat kredensial di bawah)
-npm run dev
-```
+### Admin
+- Dashboard ringkasan dan jumlah siswa aktif per kelas (Coding, Bahasa Inggris, Public Speaking).
+- Manajemen **siswa**: lihat, detail, ubah, hapus, dan atur kelas yang diikuti.
+- Manajemen **guru**: tambah, lihat, detail, ubah, hapus.
+- Manajemen **materi**: tambah, ubah, hapus, dan isi otomatis nama mapel.
+- Manajemen **kelas** dan jadwal: tambah, ubah, hapus (waktu dan lokasi tatap muka).
 
-Pastikan MySQL di Laragon sudah "Start All" dan database `sim_diklat` sudah
-dibuat lewat HeidiSQL sebelum menjalankan `prisma migrate dev`.
+## Kelas yang tersedia
 
-> Pakai PostgreSQL, bukan Laragon? Ganti `provider = "mysql"` menjadi
-> `"postgresql"` di `prisma/schema.prisma`, lalu sesuaikan `DATABASE_URL`
-> di `.env` (contoh format ada di komentar `.env.example`).
+| Kelas | Kolom siswa |
+|---|---|
+| Kelas Coding | `kelas_coding` |
+| Kelas Bahasa Inggris | `kelas_inggris` |
+| Kelas Public Speaking | `kelas_speaking` |
 
-Buka `http://localhost:3000` → diarahkan ke `/login`.
+Materi dan jadwal dicocokkan ke kelas siswa lewat kata kunci pada kolom `kelas` (misalnya `coding`, `inggris`, `speaking`).
 
-## Kredensial demo
+## Teknologi
 
-| Role  | Email                         | Password     |
-|-------|--------------------------------|--------------|
-| Admin | admin@diklat.go.id             | Admin123!    |
-| User  | andi.saputra@pemko.go.id       | Peserta123!  |
+- **Backend:** PHP dengan CodeIgniter 3 (arsitektur MVC)
+- **Database:** MySQL / MariaDB, driver `mysqli`
+- **Frontend:** HTML, CSS, dan JavaScript murni (tanpa framework) pada halaman siswa
+- **Font:** Bricolage Grotesque dan Plus Jakarta Sans (Google Fonts)
+- **Lingkungan pengembangan:** Laragon atau XAMPP
 
-## Struktur folder
+## Struktur proyek
 
 ```
-prisma/
-  schema.prisma   → 6 entitas inti + relasi (lihat ARSITEKTUR-DIKLAT.md)
-  seed.ts         → seed 2 akun demo
-src/
-  app/
-    login/        → halaman login (client component)
-    dashboard/    → dashboard admin (placeholder statistik)
-    kelas/[id]/   → detail kelas (tabbed: Overview/Materi/Peserta/Panitia)
-  components/
-    KelasDiklatDetail.jsx
-  lib/
-    prisma.js     → singleton PrismaClient
+Superteam_Academy/
+├── application/
+│   ├── controllers/   Welcome, User, Materi, Guru, Admin
+│   ├── models/        M_siswa, M_guru, M_materi, M_kelas
+│   ├── views/
+│   │   ├── user/      beranda dan registrasi siswa
+│   │   ├── materi/    halaman belajar
+│   │   ├── guru/      halaman guru
+│   │   ├── admin/     halaman admin
+│   │   └── template/  navbar dan footer
+│   └── config/        database, routes, config
+├── assets/
+│   ├── css/           user_redesign.css
+│   ├── img/           logo dan ikon
+│   └── materi_video/  video materi (tidak ikut repo)
+└── docs/images/       tangkapan layar untuk README
 ```
 
-## Dokumen pendukung
+## Instalasi
 
-- `ARSITEKTUR-DIKLAT.md` — ERD, arsitektur navigasi, user flow, sistem desain
-- `prototype-demo.html` — prototype interaktif 1-file (buka langsung di
-  browser, tanpa perlu `npm install`) untuk lihat alur login → dashboard
-  → detail kelas → portal peserta dengan data contoh
+1. **Kloning repositori** ke folder web server.
+   ```bash
+   git clone https://github.com/MRikoKuswoyo/Superteam_Academy.git
+   ```
+   Letakkan di `C:\laragon\www\` (Laragon) atau `C:\xampp\htdocs\` (XAMPP).
+2. **Buat database** bernama `superteam_academy` di phpMyAdmin, lalu impor berkas SQL proyek. Tabel yang dipakai: `siswa`, `guru`, `admin`, `materi`, `kelas`, dan `token`.
+3. **Atur koneksi database** di `application/config/database.php`.
+   ```php
+   'hostname' => 'localhost',
+   'username' => 'root',
+   'password' => '',
+   'database' => 'superteam_academy',
+   ```
+4. **Atur base URL** di `application/config/config.php`.
+   ```php
+   $config['base_url'] = 'http://localhost/Superteam_Academy/';
+   ```
+5. **Siapkan folder video.** Buat `assets/materi_video/` dan pastikan bisa ditulis oleh server.
+6. Jalankan Apache dan MySQL, lalu buka `http://localhost/Superteam_Academy/`.
+
+## Alur penggunaan
+
+1. Siswa mendaftar, lalu admin mengaktifkan kelas siswa tersebut.
+2. Guru atau admin menambahkan materi dan video untuk kelas yang sesuai.
+3. Admin menambahkan jadwal tatap muka di Manajemen Kelas.
+4. Siswa masuk, membuka **Beranda**, lalu memilih **Lanjutkan belajar** atau **Buka materi**.
+
+## Keamanan
+
+- Jangan mengunggah `application/config/database.php` yang berisi kata sandi asli. Pakai berkas contoh dengan nilai kosong.
+- Kata sandi disimpan dengan `password_hash()`.
+- Keluaran ke halaman dilindungi `html_escape()`.
+- Isi `smtp_user` dan `smtp_pass` hanya di server, jangan di repositori.
+- Halaman siswa, guru, dan admin dilindungi pemeriksaan sesi dan peran.
+
+## Penerbit
+
+Dikembangkan dan diterbitkan oleh **MRikoKuswoyo** dan **Team Programmer Superteam Batch 7 UPTBKK Universitas Malikussaleh**.
