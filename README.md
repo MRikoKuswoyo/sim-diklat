@@ -10,24 +10,6 @@
 
 SIM Diklat adalah aplikasi web untuk mengelola penyelenggaraan pendidikan dan pelatihan (diklat), mulai dari judul diklat, materi, kelas, peserta, narasumber, dan panitia, sampai penerbitan sertifikat digital. Sistem punya dua peran: **Admin** yang mengelola seluruh data, dan **Peserta** yang melihat jadwal, materi, dan sertifikatnya lewat portal.
 
-## Tampilan
-
-| Login | Dashboard admin |
-|---|---|
-| ![Login](docs/screenshots/login.png) | ![Dashboard](docs/screenshots/dashboard.png) |
-
-| Daftar kelas | Form kelas baru (wizard) |
-|---|---|
-| ![Daftar kelas](docs/screenshots/kelas-daftar.png) | ![Wizard kelas baru](docs/screenshots/kelas-wizard.png) |
-
-| Detail kelas | Import / export peserta |
-|---|---|
-| ![Detail kelas](docs/screenshots/kelas-detail.png) | ![Import export peserta](docs/screenshots/peserta-import-export.png) |
-
-| Portal peserta | Sertifikat digital |
-|---|---|
-| ![Portal peserta](docs/screenshots/portal-peserta.png) | ![Sertifikat](docs/screenshots/sertifikat.png) |
-
 ## Fitur
 
 ### Admin
@@ -170,3 +152,11 @@ Dikembangkan dan diterbitkan oleh:
 &copy; 2026 **MRikoKuswoyo**, **Divisi Pranata Komputer Tim DIGITAL BBGTK Provinsi Sumatera Utara**, dan **MagangHub Batch 2**. Seluruh hak cipta dilindungi undang-undang.
 
 Perangkat lunak ini dilindungi berdasarkan Undang-Undang Nomor 28 Tahun 2014 tentang Hak Cipta. Dilarang menggandakan, mendistribusikan, atau memodifikasi sebagian maupun seluruh isi repositori ini tanpa izin tertulis dari pemegang hak cipta.
+
+### Tim DIGITAL
+
+Untuk izin penggunaan, pertanyaan, atau kerja sama, hubungi Tim DIGITAL:
+
+1. muhammadrikokuswoyo5104@gmail.com
+2. angelaulilestari@gmail.com
+3. ilyasmuadz13@gmail.com
