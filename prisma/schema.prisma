@@ -1,0 +1,298 @@
+// schema.prisma
+// Sistem Informasi Manajemen Diklat
+// Jalankan: npx prisma migrate dev --name init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum StatusDiklat {
+  AKTIF
+  DRAFT
+  SELESAI
+}
+
+enum StatusKelas {
+  PERSIAPAN
+  BERJALAN
+  SELESAI
+}
+
+enum StatusKelulusan {
+  PROSES
+  LULUS
+  TIDAK_LULUS
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+/// Pengaturan aplikasi (singleton, selalu 1 baris dengan id = "singleton")
+/// Menyimpan logo & nama aplikasi yang bisa diubah admin lewat menu Pengaturan.
+model Settings {
+  id           String   @id @default("singleton")
+  logoUrl      String?  @map("logo_url")
+  backgroundUrl String? @map("background_url")
+  namaAplikasi String   @default("SIM Diklat") @map("nama_aplikasi")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
+
+/// Akun login sistem — role menentukan akses:
+/// ADMIN → seluruh menu manajemen (Diklat, Kelas, Peserta, dst.)
+/// USER  → hanya Portal Peserta (jadwal, materi, sertifikat), terhubung ke satu Peserta
+model User {
+  id           String   @id @default(uuid())
+  nama         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role     @default(USER)
+  pesertaId    String?  @unique @map("peserta_id")
+  fotoUrl      String?  @map("foto_url")
+  notifikasi   Notifikasi[]
+  createdAt    DateTime @default(now())
+
+  peserta      Peserta? @relation(fields: [pesertaId], references: [id])
+
+  @@map("users")
+}
+
+/// 1. Judul Diklat — program induk
+model JudulDiklat {
+  id          String       @id @default(uuid())
+  kode        String       @unique
+  nama        String
+  deskripsi   String?      @db.Text
+  kategori    String
+  status      StatusDiklat @default(DRAFT)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  materi      MateriDiklat[]
+  kelas       KelasDiklat[]
+
+  @@map("judul_diklat")
+}
+
+/// 2. Materi Diklat — modul pembelajaran, terikat ke satu Judul Diklat
+model MateriDiklat {
+  id             String      @id @default(uuid())
+  judulDiklatId  String      @map("judul_diklat_id")
+  judulMateri    String
+  fileSilabusUrl String?     @map("file_silabus_url")
+  durasiJp       Int         @map("durasi_jp")
+  deskripsi      String?     @db.Text
+
+  judulDiklat    JudulDiklat @relation(fields: [judulDiklatId], references: [id], onDelete: Cascade)
+  pengajarKelas  PengajarKelas[]
+
+  @@map("materi_diklat")
+}
+
+/// 3. Kelas Diklat — angkatan/batch, turunan dari Judul Diklat
+model KelasDiklat {
+  id              String      @id @default(uuid())
+  judulDiklatId   String      @map("judul_diklat_id")
+  namaBatch       String      @map("nama_batch")
+  tanggalMulai    DateTime    @map("tanggal_mulai")
+  tanggalSelesai  DateTime    @map("tanggal_selesai")
+  lokasiAtauLink  String      @map("lokasi_atau_link")
+  kuota           Int
+  status          StatusKelas @default(PERSIAPAN)
+  moodleCourseId  Int?        @map("moodle_course_id")
+  createdAt       DateTime    @default(now())
+
+  judulDiklat     JudulDiklat        @relation(fields: [judulDiklatId], references: [id])
+  pendaftaran     PendaftaranPeserta[]
+  pengajarKelas   PengajarKelas[]
+  panitiaKelas    PanitiaKelas[]
+  sesi            SesiKelas[]
+  nilaiMinimal     Int           @default(70) @map("nilai_minimal")
+  kehadiranMinimal Int           @default(80) @map("kehadiran_minimal")
+  komponenNilai   KomponenNilai[]
+
+  @@map("kelas_diklat")
+}
+
+/// 4. Peserta — master data global peserta
+model Peserta {
+  id          String   @id @default(uuid())
+  nama        String
+  nipNik      String   @unique @map("nip_nik")
+  instansi    String
+  email       String   @unique
+
+  pendaftaran PendaftaranPeserta[]
+  presensi    Presensi[]
+  nilaiKomponen NilaiKomponen[]
+  user        User?
+
+  @@map("peserta")
+}
+
+/// Junction: Peserta <-> Kelas Diklat (menyimpan nilai & status kelulusan per kelas)
+model PendaftaranPeserta {
+  id              String          @id @default(uuid())
+  kelasId         String          @map("kelas_id")
+  pesertaId       String          @map("peserta_id")
+  nilai           Decimal?        @db.Decimal(5, 2)
+  statusKelulusan StatusKelulusan @default(PROSES) @map("status_kelulusan")
+  sertifikatUrl   String?         @map("sertifikat_url")
+  nomorSertifikat String?         @map("nomor_sertifikat")
+  tanggalDaftar   DateTime        @default(now()) @map("tanggal_daftar")
+
+  kelas           KelasDiklat @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  peserta         Peserta     @relation(fields: [pesertaId], references: [id])
+
+  @@unique([kelasId, pesertaId])
+  @@map("pendaftaran_peserta")
+}
+
+/// 5. Narasumber — master data pengajar
+model Narasumber {
+  id            String @id @default(uuid())
+  nama          String
+  kepakaran     String
+  kontak        String
+  instansiAsal  String @map("instansi_asal")
+
+  pengajarKelas PengajarKelas[]
+
+  @@map("narasumber")
+}
+
+/// Junction: Narasumber diplot ke Kelas Diklat DAN Materi tertentu
+model PengajarKelas {
+  id            String @id @default(uuid())
+  kelasId       String @map("kelas_id")
+  narasumberId  String @map("narasumber_id")
+  materiId      String @map("materi_id")
+
+  kelas         KelasDiklat  @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  narasumber    Narasumber   @relation(fields: [narasumberId], references: [id])
+  materi        MateriDiklat @relation(fields: [materiId], references: [id])
+
+  @@unique([kelasId, narasumberId, materiId])
+  @@map("pengajar_kelas")
+}
+
+/// 6. Panitia — master data pengelola operasional
+model Panitia {
+  id     String @id @default(uuid())
+  nama   String
+  kontak String
+
+  panitiaKelas PanitiaKelas[]
+
+  @@map("panitia")
+}
+
+/// Junction: Panitia bertanggung jawab atas Kelas Diklat tertentu (dengan peran/PJ)
+model PanitiaKelas {
+  id        String @id @default(uuid())
+  kelasId   String @map("kelas_id")
+  panitiaId String @map("panitia_id")
+  peranPj   String @map("peran_pj") // contoh: "Koordinator", "Admin Kelas", "Logistik"
+
+  kelas     KelasDiklat @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  panitia   Panitia     @relation(fields: [panitiaId], references: [id])
+
+  @@unique([kelasId, panitiaId])
+  @@map("panitia_kelas")
+}
+
+model Pengumuman {
+  id        String   @id @default(uuid())
+  judul     String
+  isi       String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("pengumuman")
+}
+
+enum StatusHadir {
+  HADIR
+  IZIN
+  SAKIT
+  ALPA
+}
+
+model SesiKelas {
+  id         String   @id @default(uuid())
+  kelasId    String   @map("kelas_id")
+  tanggal    DateTime @db.Date
+  jamMulai   String   @map("jam_mulai")
+  jamSelesai String   @map("jam_selesai")
+  judul      String
+  kodeAbsen  String?  @map("kode_absen")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  kelas    KelasDiklat @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  presensi Presensi[]
+
+  @@map("sesi_kelas")
+}
+
+model Presensi {
+  id        String      @id @default(uuid())
+  sesiId    String      @map("sesi_id")
+  pesertaId String      @map("peserta_id")
+  status    StatusHadir
+
+  sesi    SesiKelas @relation(fields: [sesiId], references: [id], onDelete: Cascade)
+  peserta Peserta   @relation(fields: [pesertaId], references: [id], onDelete: Cascade)
+
+  @@unique([sesiId, pesertaId])
+  @@map("presensi")
+}
+
+model KomponenNilai {
+  id        String   @id @default(uuid())
+  kelasId   String   @map("kelas_id")
+  nama      String
+  bobot     Int
+  createdAt DateTime @default(now()) @map("created_at")
+
+  kelas KelasDiklat    @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  nilai NilaiKomponen[]
+
+  @@map("komponen_nilai")
+}
+
+model NilaiKomponen {
+  id         String @id @default(uuid())
+  komponenId String @map("komponen_id")
+  pesertaId  String @map("peserta_id")
+  nilai      Float
+
+  komponen KomponenNilai @relation(fields: [komponenId], references: [id], onDelete: Cascade)
+  peserta  Peserta       @relation(fields: [pesertaId], references: [id], onDelete: Cascade)
+
+  @@unique([komponenId, pesertaId])
+  @@map("nilai_komponen")
+}
+
+model Notifikasi {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  judul     String
+  isi       String   @db.Text
+  tautan    String?
+  dibaca    Boolean  @default(false)
+  kunci     String?  // untuk mencegah notifikasi ganda (mis. pengingat sesi)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kunci])
+  @@index([userId, dibaca])
+  @@map("notifikasi")
+}

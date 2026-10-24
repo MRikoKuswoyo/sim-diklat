@@ -1,0 +1,11 @@
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
+import { verifySessionToken, SESSION_COOKIE } from "@/lib/auth";
+
+export default async function Home() {
+  const token = cookies().get(SESSION_COOKIE)?.value;
+  const session = token ? await verifySessionToken(token) : null;
+
+  if (!session) redirect("/login");
+  redirect(session.role === "ADMIN" ? "/dashboard" : "/portal");
+}

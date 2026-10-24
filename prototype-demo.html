@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SIM Diklat</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+  :root{--navy:#16233F;--gold:#B8892B;--paper:#F6F4EF;--ink:#1C2130;}
+  html,body{height:100%;background:var(--paper);color:var(--ink);}
+  body{padding-top:env(safe-area-inset-top,0);padding-bottom:env(safe-area-inset-bottom,0);}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const {useState,useMemo,useEffect} = React;
+
+const USERS = [
+  {email:"admin@diklat.go.id",password:"Admin123!",role:"ADMIN",nama:"Admin Diklat"},
+  {email:"andi.saputra@pemko.go.id",password:"Peserta123!",role:"USER",nama:"Andi Saputra"},
+];
+
+const SEED = {
+  kelas: {
+    id:"k1", namaBatch:"Angkatan 12", status:"BERJALAN", kuota:30,
+    judul:{nama:"Diklat Kepemimpinan Administrator",kode:"DKA-2026",kategori:"Kepemimpinan"},
+    mulai:"2026-09-12", selesai:"2026-09-20", lokasi:"Pusdiklat Regional III, Batam",
+    materi:[
+      {id:"m1",judul:"Manajemen Perubahan di Sektor Publik",jp:8,narasumber:["Dr. Siti Rahmawati"]},
+      {id:"m2",judul:"Pengambilan Keputusan Berbasis Data",jp:6,narasumber:["Ir. Bambang Wijaya, M.T."]},
+      {id:"m3",judul:"Etika dan Integritas Kepemimpinan",jp:4,narasumber:["Dr. Siti Rahmawati","Prof. Herman Sutopo"]},
+    ],
+    panitia:[{nama:"Ayu Lestari",peran:"Koordinator Kelas"},{nama:"Dedi Kurniawan",peran:"Admin & Logistik"}],
+    peserta:[
+      {nama:"Andi Saputra",nip:"198501012010011001",instansi:"Pemkot Batam",nilai:88,status:"LULUS"},
+      {nama:"Rina Marlina",nip:"199002152012022002",instansi:"Kemenkeu",nilai:76,status:"LULUS"},
+      {nama:"Fajar Nugroho",nip:"198811302015031003",instansi:"Pemprov Kepri",nilai:null,status:"PROSES"},
+      {nama:"Wulan Sari",nip:"199305202016042004",instansi:"BKN",nilai:58,status:"TIDAK_LULUS"},
+    ],
+  }
+};
+
+const STATUS = {
+  BERJALAN:{d:"bg-emerald-600",t:"text-emerald-800",b:"bg-emerald-50",l:"Berjalan"},
+  LULUS:{d:"bg-emerald-600",t:"text-emerald-800",b:"bg-emerald-50",l:"Lulus"},
+  PROSES:{d:"bg-amber-600",t:"text-amber-800",b:"bg-amber-50",l:"Proses"},
+  TIDAK_LULUS:{d:"bg-rose-600",t:"text-rose-800",b:"bg-rose-50",l:"Tidak Lulus"},
+};
+function Badge({s}){const x=STATUS[s]||STATUS.PROSES;return <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${x.b} ${x.t}`}><span className={`h-1.5 w-1.5 rounded-full ${x.d}`}/>{x.l}</span>;}
+
+function Login({onLogin}){
+  const [email,setEmail]=useState(""),[pw,setPw]=useState(""),[err,setErr]=useState("");
+  function submit(e){
+    e.preventDefault();
+    const u=USERS.find(u=>u.email===email&&u.password===pw);
+    if(!u){setErr("Email atau kata sandi tidak sesuai.");return;}
+    onLogin(u);
+  }
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-sm">
+        <div className="mb-8 text-center">
+          <div className="mx-auto h-12 w-12 rounded-full flex items-center justify-center" style={{background:"var(--navy)"}}>
+            <span style={{color:"var(--gold)"}} className="font-serif font-bold">SD</span>
+          </div>
+          <h1 className="mt-4 font-serif text-2xl font-semibold" style={{color:"var(--navy)"}}>SIM Diklat</h1>
+          <p className="mt-1 text-sm text-slate-500">Masuk untuk mengelola atau mengikuti diklat</p>
+        </div>
+        <form onSubmit={submit} className="rounded-lg border border-slate-200 bg-white p-6 space-y-4">
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700">Email</label>
+            <input value={email} onChange={e=>setEmail(e.target.value)} type="email" required placeholder="nama@instansi.go.id"
+              className="w-full rounded-md border border-slate-300 py-2 px-3 text-sm outline-none focus:border-[var(--navy)]"/>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700">Kata Sandi</label>
+            <input value={pw} onChange={e=>setPw(e.target.value)} type="password" required placeholder="••••••••"
+              className="w-full rounded-md border border-slate-300 py-2 px-3 text-sm outline-none focus:border-[var(--navy)]"/>
+          </div>
+          {err && <p className="rounded-md border-l-4 border-rose-500 bg-rose-50 px-3 py-2 text-sm text-rose-700">{err}</p>}
+          <button type="submit" className="w-full rounded-md py-2.5 text-sm font-medium text-white" style={{background:"var(--navy)"}}>Masuk</button>
+        </form>
+        <div className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-500">
+          <span>Coba sebagai:</span>
+          <button onClick={()=>{setEmail(USERS[0].email);setPw(USERS[0].password);}} className="rounded border border-slate-300 bg-white px-2 py-1 hover:bg-slate-50">Admin</button>
+          <button onClick={()=>{setEmail(USERS[1].email);setPw(USERS[1].password);}} className="rounded border border-slate-300 bg-white px-2 py-1 hover:bg-slate-50">User</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const ADMIN_MENU=[["dashboard","Dashboard"],["kelas","Kelas Diklat"],["peserta","Peserta"],["narasumber","Narasumber"],["panitia","Panitia"]];
+const USER_MENU=[["portal","Portal Peserta"]];
+
+function Sidebar({role,active,setActive,onLogout,user}){
+  const menu = role==="ADMIN"?ADMIN_MENU:USER_MENU;
+  return (
+    <div className="w-56 shrink-0 text-white flex flex-col" style={{background:"var(--navy)"}}>
+      <div className="p-5 font-serif text-lg font-semibold border-b border-white/10">SIM Diklat</div>
+      <nav className="flex-1 p-3 space-y-1">
+        {menu.map(([k,l])=>(
+          <button key={k} onClick={()=>setActive(k)}
+            className={`w-full text-left px-3 py-2 rounded-md text-sm ${active===k?"bg-white/10 font-medium":"text-white/80 hover:bg-white/5"}`}>{l}</button>
+        ))}
+      </nav>
+      <div className="p-3 border-t border-white/10 text-xs text-white/70">
+        <p className="text-white">{user.nama}</p>
+        <p>{role==="ADMIN"?"Administrator":"Peserta"}</p>
+        <button onClick={onLogout} className="mt-2 text-white/80 underline hover:text-white">Keluar</button>
+      </div>
+    </div>
+  );
+}
+
+function Dashboard({kelas}){
+  const lulus = kelas.peserta.filter(p=>p.status==="LULUS").length;
+  const pct = Math.round(lulus/kelas.peserta.length*100);
+  const stats=[["Diklat Aktif",1],["Total Peserta",kelas.peserta.length],["Kelas Berjalan",1],["Persentase Kelulusan",pct+"%"]];
+  return (
+    <div>
+      <h1 className="font-serif text-2xl font-semibold mb-5" style={{color:"var(--navy)"}}>Dashboard</h1>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        {stats.map(([l,v])=>(
+          <div key={l} className="rounded-lg border-l-4 bg-white p-4" style={{borderColor:"var(--gold)"}}>
+            <p className="text-xs text-slate-500">{l}</p>
+            <p className="mt-1 text-xl font-semibold" style={{color:"var(--navy)"}}>{v}</p>
+          </div>
+        ))}
+      </div>
+      <div className="rounded-lg border border-slate-200 bg-white p-5">
+        <h2 className="font-serif text-lg font-semibold mb-3" style={{color:"var(--navy)"}}>Progres Kelulusan &mdash; {kelas.namaBatch}</h2>
+        <div className="flex items-center gap-4">
+          <div className="h-2.5 flex-1 rounded-full bg-slate-100 overflow-hidden">
+            <div className="h-full rounded-full" style={{width:pct+"%",background:"var(--gold)"}}/>
+          </div>
+          <span className="text-sm font-semibold" style={{color:"var(--navy)"}}>{pct}%</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function KelasList({kelas,onOpen}){
+  return (
+    <div>
+      <h1 className="font-serif text-2xl font-semibold mb-5" style={{color:"var(--navy)"}}>Kelas Diklat</h1>
+      <button onClick={()=>onOpen(kelas.id)} className="w-full text-left rounded-lg border border-slate-200 bg-white p-5 hover:border-[var(--navy)]">
+        <div className="flex flex-wrap justify-between gap-2">
+          <div>
+            <p className="text-xs text-slate-400">{kelas.judul.kode}</p>
+            <p className="font-serif font-semibold" style={{color:"var(--navy)"}}>{kelas.judul.nama} &mdash; {kelas.namaBatch}</p>
+            <p className="text-sm text-slate-500 mt-1">{kelas.mulai} s/d {kelas.selesai} &middot; {kelas.lokasi}</p>
+          </div>
+          <Badge s={kelas.status}/>
+        </div>
+      </button>
+    </div>
+  );
+}
+
+function KelasDetail({kelas,onBack}){
+  const [tab,setTab]=useState("overview");
+  const [q,setQ]=useState(""), [f,setF]=useState("SEMUA");
+  const filtered = kelas.peserta.filter(p=>(f==="SEMUA"||p.status===f)&&p.nama.toLowerCase().includes(q.toLowerCase()));
+  const totalJp = kelas.materi.reduce((s,m)=>s+m.jp,0);
+  const tabs=[["overview","Overview"],["materi","Materi & Narasumber"],["peserta","Peserta"],["panitia","Panitia"]];
+  return (
+    <div>
+      <button onClick={onBack} className="text-sm text-slate-500 hover:text-slate-700 mb-3">&larr; Kembali ke daftar kelas</button>
+      <div className="flex flex-wrap justify-between gap-3 mb-2">
+        <div>
+          <p className="text-sm text-slate-500">{kelas.judul.kode} &middot; {kelas.judul.kategori}</p>
+          <h1 className="font-serif text-2xl font-semibold" style={{color:"var(--navy)"}}>{kelas.judul.nama}</h1>
+          <p className="text-slate-600">{kelas.namaBatch}</p>
+        </div>
+        <Badge s={kelas.status}/>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-4 border-y border-slate-200 text-sm mb-4">
+        <div><p className="text-xs text-slate-500">Jadwal</p><p className="font-medium">{kelas.mulai} &ndash; {kelas.selesai}</p></div>
+        <div><p className="text-xs text-slate-500">Lokasi</p><p className="font-medium">{kelas.lokasi}</p></div>
+        <div><p className="text-xs text-slate-500">Peserta</p><p className="font-medium">{kelas.peserta.length}/{kelas.kuota}</p></div>
+        <div><p className="text-xs text-slate-500">Total JP</p><p className="font-medium">{totalJp} JP</p></div>
+      </div>
+      <nav className="flex gap-6 border-b border-slate-200 mb-5">
+        {tabs.map(([k,l])=>(
+          <button key={k} onClick={()=>setTab(k)} className={`pb-3 text-sm font-medium border-b-2 ${tab===k?"border-[var(--navy)] text-[var(--navy)]":"border-transparent text-slate-500"}`}>{l}</button>
+        ))}
+      </nav>
+      {tab==="overview" && (
+        <p className="text-sm text-slate-600 leading-relaxed">{kelas.namaBatch} dilaksanakan di {kelas.lokasi} mulai {kelas.mulai} sampai {kelas.selesai}, mencakup {kelas.materi.length} materi dengan total {totalJp} JP.</p>
+      )}
+      {tab==="materi" && (
+        <div className="space-y-3">
+          {kelas.materi.map(m=>(
+            <div key={m.id} className="rounded-lg border border-slate-200 bg-white p-4">
+              <div className="flex justify-between"><p className="font-medium">{m.judul}</p><span className="text-xs bg-slate-100 rounded-full px-2.5 py-1">{m.jp} JP</span></div>
+              <p className="text-sm text-slate-500 mt-1">Narasumber: {m.narasumber.join(", ")}</p>
+            </div>
+          ))}
+        </div>
+      )}
+      {tab==="peserta" && (
+        <div>
+          <div className="flex flex-wrap gap-2 mb-4">
+            <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Cari nama..." className="rounded-md border border-slate-300 px-3 py-1.5 text-sm"/>
+            <select value={f} onChange={e=>setF(e.target.value)} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm">
+              <option value="SEMUA">Semua status</option><option value="LULUS">Lulus</option><option value="PROSES">Proses</option><option value="TIDAK_LULUS">Tidak Lulus</option>
+            </select>
+            <button className="ml-auto rounded-md text-white px-3 py-1.5 text-sm" style={{background:"var(--navy)"}}>Export</button>
+            <button className="rounded-md border border-slate-300 px-3 py-1.5 text-sm">Import</button>
+          </div>
+          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+            <table className="w-full text-sm text-left">
+              <thead><tr className="border-b border-slate-200 text-xs text-slate-500"><th className="px-4 py-3">Nama</th><th className="px-4 py-3">Instansi</th><th className="px-4 py-3">Nilai</th><th className="px-4 py-3">Status</th></tr></thead>
+              <tbody>{filtered.map(p=>(
+                <tr key={p.nip} className="border-b border-slate-100 last:border-0"><td className="px-4 py-3">{p.nama}</td><td className="px-4 py-3 text-slate-600">{p.instansi}</td><td className="px-4 py-3">{p.nilai??"—"}</td><td className="px-4 py-3"><Badge s={p.status}/></td></tr>
+              ))}</tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      {tab==="panitia" && (
+        <div className="grid sm:grid-cols-2 gap-3">
+          {kelas.panitia.map(p=>(
+            <div key={p.nama} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-4">
+              <div className="h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-semibold" style={{background:"var(--navy)"}}>{p.nama.split(" ").map(w=>w[0]).slice(0,2).join("")}</div>
+              <div><p className="font-medium">{p.nama}</p><p className="text-xs text-slate-500">{p.peran}</p></div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SimpleList({title,items}){
+  return (
+    <div>
+      <h1 className="font-serif text-2xl font-semibold mb-5" style={{color:"var(--navy)"}}>{title}</h1>
+      <div className="grid sm:grid-cols-2 gap-3">
+        {items.map(i=>(
+          <div key={i.nama} className="rounded-lg border border-slate-200 bg-white p-4">
+            <p className="font-medium">{i.nama}</p><p className="text-xs text-slate-500">{i.sub}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Portal({kelas,user}){
+  const me = kelas.peserta.find(p=>p.nama===user.nama);
+  return (
+    <div>
+      <h1 className="font-serif text-2xl font-semibold mb-5" style={{color:"var(--navy)"}}>Portal Peserta</h1>
+      <div className="rounded-lg border border-slate-200 bg-white p-5 mb-4">
+        <p className="text-sm text-slate-500">Kelas diikuti</p>
+        <p className="font-serif font-semibold" style={{color:"var(--navy)"}}>{kelas.judul.nama} &mdash; {kelas.namaBatch}</p>
+        <p className="text-sm text-slate-600 mt-1">{kelas.mulai} s/d {kelas.selesai} &middot; {kelas.lokasi}</p>
+      </div>
+      <div className="rounded-lg border border-slate-200 bg-white p-5 mb-4">
+        <p className="text-sm font-medium mb-2">Materi</p>
+        {kelas.materi.map(m=><p key={m.id} className="text-sm text-slate-600 py-1 border-b border-slate-100 last:border-0">{m.judul} &middot; {m.jp} JP</p>)}
+      </div>
+      <div className="rounded-lg border-l-4 bg-white p-5" style={{borderColor:"var(--gold)"}}>
+        <p className="text-sm font-medium mb-1">Sertifikat</p>
+        {me?.status==="LULUS" ? (
+          <button className="rounded-md text-white px-3 py-1.5 text-sm mt-1" style={{background:"var(--navy)"}}>Unduh Sertifikat</button>
+        ) : <p className="text-sm text-slate-500">Sertifikat tersedia setelah dinyatakan lulus.</p>}
+      </div>
+    </div>
+  );
+}
+
+function App(){
+  const [user,setUser]=useState(null);
+  const [active,setActive]=useState("dashboard");
+  const [openKelasId,setOpenKelasId]=useState(null);
+  const kelas = SEED.kelas;
+
+  useEffect(()=>{
+    try{ const saved=localStorage.getItem("simdiklat_user"); if(saved) setUser(JSON.parse(saved)); }catch(e){}
+  },[]);
+  function login(u){
+    setUser(u); setActive(u.role==="ADMIN"?"dashboard":"portal");
+    try{ localStorage.setItem("simdiklat_user",JSON.stringify(u)); }catch(e){}
+  }
+  function logout(){ setUser(null); try{localStorage.removeItem("simdiklat_user");}catch(e){} }
+
+  if(!user) return <Login onLogin={login}/>;
+
+  let content;
+  if(user.role==="ADMIN"){
+    if(active==="dashboard") content=<Dashboard kelas={kelas}/>;
+    else if(active==="kelas") content = openKelasId ? <KelasDetail kelas={kelas} onBack={()=>setOpenKelasId(null)}/> : <KelasList kelas={kelas} onOpen={setOpenKelasId}/>;
+    else if(active==="peserta") content=<SimpleList title="Peserta" items={kelas.peserta.map(p=>({nama:p.nama,sub:p.instansi}))}/>;
+    else if(active==="narasumber") content=<SimpleList title="Narasumber" items={[{nama:"Dr. Siti Rahmawati",sub:"Manajemen Perubahan"},{nama:"Ir. Bambang Wijaya, M.T.",sub:"Data & Kebijakan Publik"},{nama:"Prof. Herman Sutopo",sub:"Etika Pemerintahan"}]}/>;
+    else content=<SimpleList title="Panitia" items={kelas.panitia.map(p=>({nama:p.nama,sub:p.peran}))}/>;
+  } else {
+    content=<Portal kelas={kelas} user={user}/>;
+  }
+
+  return (
+    <div className="min-h-screen flex">
+      <Sidebar role={user.role} active={active} setActive={(k)=>{setActive(k);setOpenKelasId(null);}} onLogout={logout} user={user}/>
+      <main className="flex-1 p-6 sm:p-8 max-w-5xl">{content}</main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
